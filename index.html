@@ -164,7 +164,7 @@
         window.subscribe = async function () {
             token = await notifyHandler();
 
-            if (!token) {
+            if (token == null) {
                 alert("無效的推播權杖！");
                 return;
             }
