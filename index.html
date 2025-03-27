@@ -133,7 +133,7 @@
     <div class="instruction-container" style="display:none;">
         <h2>無法獲取通知權限</h2>
         <p>請根據下方的指示開啟通知權限</p>
-        <button onclick="subscribe()">獲取權限</button>
+        <button onclick="ask()">獲取權限</button>
         <div class="instruction">
         </div>
     </div>
@@ -307,7 +307,9 @@
                         document.getElementById('iframe').src = url + "?token=" + token;
                     }
                     else {
-                        showInstruction();
+                        if (Notification.permission === 'denied') {
+                            showInstruction();
+                        }
 
                         document.getElementById('iframe').src = '';
                         document.querySelector('#subscribe').style.display = "none";
@@ -364,6 +366,17 @@
 
             const imgSrc = images[agent] || images["unknown"];
             instruction.innerHTML = `<img src="${imgSrc}" alt="如何開啟通知">`;
+        }
+
+        function ask() {
+            // 重新請求通知權限
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    alert('你已經開啟通知權限！');
+                } else {
+                    alert('你仍然拒絕了通知權限。');
+                }
+            });
         }
 
     </script>
