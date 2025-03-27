@@ -210,39 +210,40 @@
 
             document.getElementById('pageloading').style.display = "none";
 
-            try {
-                if (detectUserAgent() == 'ios') {
-                    document.querySelector('#startBtn').style.display = "";
-                } else {
-                    init();
-                }
+            if (detectUserAgent() == 'ios') {
+                document.querySelector('#startBtn').style.display = "";
+            } else {
+                init();
             }
-            catch { }
         }
 
         async function init() {
-            document.querySelector('#startBtn').style.display = "none";
+            try {
 
-            const token = await notifyHandler();
+                document.querySelector('#startBtn').style.display = "none";
 
-            document.getElementById('pageloading').style.display = "";
+                const token = await notifyHandler();
 
-            if (token) {
-                document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
-                document.getElementById('iframe').style.display = '';
+                document.getElementById('pageloading').style.display = "";
+
+                if (token) {
+                    document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
+                    document.getElementById('iframe').style.display = '';
+                }
+                else {
+                    showInstruction();
+
+                    document.getElementById('pageloading').style.display = "none";
+                    document.getElementById('iframe').src = '';
+                    document.getElementById('iframe').style.display = 'none';
+                    document.querySelector('#subscribe').style.display = "none";
+                }
+
+                document.getElementById('iframe').onload = function () {
+                    document.getElementById('pageloading').style.display = "none";
+                };
             }
-            else {
-                showInstruction();
-
-                document.getElementById('pageloading').style.display = "none";
-                document.getElementById('iframe').src = '';
-                document.getElementById('iframe').style.display = 'none';
-                document.querySelector('#subscribe').style.display = "none";
-            }
-
-            document.getElementById('iframe').onload = function () {
-                document.getElementById('pageloading').style.display = "none";
-            };
+            catch { }
         }
 
         function detectUserAgent() {
