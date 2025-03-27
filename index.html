@@ -278,9 +278,13 @@
             try {
                 if (url) {
                     token = await notifyHandler();
-                    document.getElementById('pageloading').style.display = "";
 
-                    document.getElementById('iframe').src = url + "?token=" + token;
+                    document.getElementById('pageloading').style.display = "";
+                    if(token)
+                        document.getElementById('iframe').src = url + "?token=" + token;
+                    else 
+                        document.getElementById('iframe').src = url;
+
                     document.getElementById('iframe').onload = function () {
                         document.getElementById('pageloading').style.display = "none";
                     };
