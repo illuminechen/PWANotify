@@ -211,19 +211,18 @@
             document.getElementById('pageloading').style.display = "none";
 
             try {
-                if (url) {
-                    if (detectUserAgent() == 'ios') {
-                        document.querySelector('#startBtn').style.display = "";
-                    } else {
-                        document.querySelector('#startBtn').style.display = "none";
-                        init();
-                    }
+                if (detectUserAgent() == 'ios') {
+                    document.querySelector('#startBtn').style.display = "";
+                } else {
+                    init();
                 }
             }
             catch { }
         }
 
         async function init() {
+            document.querySelector('#startBtn').style.display = "none";
+
             const token = await notifyHandler();
 
             document.getElementById('pageloading').style.display = "";
@@ -231,7 +230,6 @@
             if (token) {
                 document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
                 document.getElementById('iframe').style.display = '';
-
             }
             else {
                 showInstruction();
