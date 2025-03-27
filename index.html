@@ -215,6 +215,11 @@
 
             try {
                 let token = localStorage.getItem("token");
+
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    token = localStorage.getItem("token-ex");
+                }
+
                 if (!token) {
                     token = await notifyHandler();
                 }
@@ -222,7 +227,12 @@
                 document.getElementById('pageloading').style.display = "";
 
                 if (token) {
-                    localStorage.setItem("token", token);
+                    if (window.matchMedia('(display-mode: standalone)').matches) {
+                        localStorage.setItem("token-ex", token);
+                    }
+                    else {
+                        localStorage.setItem("token", token);
+                    }
                     document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
                     document.getElementById('iframe').style.display = '';
                 }
