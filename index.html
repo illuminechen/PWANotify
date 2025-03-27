@@ -45,6 +45,13 @@
             z-index: 1000;
         }
 
+        .topcontainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
         .container {
             background: white;
             padding: 20px;
@@ -115,7 +122,7 @@
 
 <body>
     <div class="banner">訂閱推播</div>
-    <div style="margin-top: 40px; text-align: center;">
+    <div class="topcontainer" style="margin-top: 40px; text-align: center;">
         <div id="subscribe" class="container">
             <div>
                 <label for="topic">請問是否訂閱主題：</label>
