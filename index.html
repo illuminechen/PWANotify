@@ -46,7 +46,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             max-width: 300px;
-            margin-top: 100px;
+            margin-top: 40px;
         }
 
         label {
@@ -190,7 +190,7 @@
                 headers: {
                     'Content-Type': 'text/plain'
                 },
-                body: JSON.stringify({ token: token, topic: encodeURIComponent(topic) })
+                body: JSON.stringify({ method: 'subscribe', token: token, topic: encodeURIComponent(topic) })
             })
                 .then(response => response.json())
                 .then(data => {
