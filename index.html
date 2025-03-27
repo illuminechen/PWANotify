@@ -305,7 +305,7 @@
             try {
                 if (url) {
                     token = await notifyHandler();
-
+                    alert(token);
                     document.getElementById('pageloading').style.display = "";
                     if (token) {
                         document.getElementById('iframe').src = url + "?token=" + token;
