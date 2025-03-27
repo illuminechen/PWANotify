@@ -220,6 +220,7 @@
             if (localStorage.getItem("token"))
                 init();
             else if (detectUserAgent() == 'ios') {
+                document.querySelector('#subscribe').style.display = "none";
                 document.querySelector('#startBtn').style.display = "";
             } else {
                 init();
@@ -228,7 +229,6 @@
 
         async function init() {
             try {
-
                 document.querySelector('#startBtn').style.display = "none";
                 let token = localStorage.getItem("token");
                 if (!token) {
