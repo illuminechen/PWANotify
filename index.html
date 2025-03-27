@@ -210,7 +210,9 @@
 
             document.getElementById('pageloading').style.display = "none";
 
-            if (detectUserAgent() == 'ios') {
+            if (localStorage.getItem("token"))
+                init();
+            else if (detectUserAgent() == 'ios') {
                 document.querySelector('#startBtn').style.display = "";
             } else {
                 init();
@@ -221,8 +223,11 @@
             try {
 
                 document.querySelector('#startBtn').style.display = "none";
-
-                const token = await notifyHandler();
+                let token = localStorage.getItem("token");
+                if (!token) {
+                    token = await notifyHandler();
+                    localStorage.setItem("token", "token");
+                }
 
                 document.getElementById('pageloading').style.display = "";
 
