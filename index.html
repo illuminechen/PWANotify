@@ -125,7 +125,7 @@
     <div class="topcontainer" style="margin-top: 40px; text-align: center;">
         <div id="subscribe" class="container">
             <div>
-                <label for="topic">請問是否訂閱主題：</label>
+                <label for="topic">訂閱主題：</label>
                 <input type="text" id="topic" readonly>
                 <button id="subscribeBtn" onclick="subscribe()">訂閱</button>
                 <div id="loading" style="display:none;">
@@ -133,8 +133,6 @@
                 </div>
             </div>
         </div>
-
-        <button id='startBtn' onclick="init()" style="display:none">開始使用</button>
 
         <div id='pageloading' style="width:100%;text-align:center">
             <img
@@ -215,14 +213,7 @@
             }
 
             document.getElementById('pageloading').style.display = "none";
-
-            if (localStorage.getItem("token"))
-                init();
-            else if (detectUserAgent() == 'ios') {
-                document.querySelector('#startBtn').style.display = "";
-            } else {
-                init();
-            }
+            init();
         }
 
         async function init() {
@@ -240,7 +231,7 @@
                     document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
                     document.getElementById('iframe').style.display = '';
                 }
-                else {
+                else if (!window.matchMedia('(display-mode: standalone)').matches) {
                     showInstruction();
 
                     document.getElementById('pageloading').style.display = "none";
