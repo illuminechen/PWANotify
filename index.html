@@ -187,12 +187,6 @@
     </script>
     <script>
         window.onload = async function () {
-
-
-            let urlParams = new URLSearchParams(window.location.search);
-            const url = urlParams.get('url') || 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec';
-            const topic = urlParams.get('topic');
-
             // const dynamicManifestUrl = url + "?method=manifest";
 
             // // 建立 <link rel="manifest">
@@ -200,6 +194,9 @@
             // manifestLink.rel = "manifest";
             // manifestLink.href = dynamicManifestUrl;
             // document.head.appendChild(manifestLink);
+
+            let urlParams = new URLSearchParams(window.location.search);
+            const topic = urlParams.get('topic');
 
             if (topic) {
                 document.querySelector('#topic').value = topic;
@@ -230,7 +227,7 @@
             document.getElementById('pageloading').style.display = "";
 
             if (token) {
-                document.getElementById('iframe').src = url + "?token=" + token;
+                document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
                 document.getElementById('iframe').style.display = '';
 
             }
