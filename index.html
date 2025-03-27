@@ -158,7 +158,7 @@
                 headers: {
                     'Content-Type': 'text/plain'
                 },
-                body: JSON.stringify({ token: token, topic: topic })
+                body: JSON.stringify({ token: token, topic: encodeURIComponent(topic) })
             })
                 .then(response => response.json())
                 .then(data => {
@@ -225,7 +225,7 @@
         window.onload = async function () {
             let urlParams = new URLSearchParams(window.location.search);
             const url = params.get('url');
-            const topic = params.get('topic');
+            const topic = decodeURIComponent(params.get('topic'));
 
             if (topic) {
                 document.querySelector('#topic').value = topic;
