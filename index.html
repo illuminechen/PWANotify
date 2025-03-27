@@ -124,10 +124,14 @@
     <div class="banner">訂閱推播</div>
     <div class="topcontainer" style="margin-top: 40px; text-align: center;">
         <div class="advise" style="display: none;">
-            <a href=" /PWANotify/?topic=八會所生命讀經"><button>八會所生命讀經</button></a>
-            <a href="/PWANotify/?topic=四十七會所生命讀經"><button>四十七會所生命讀經</button></a>
-            <a href="/PWANotify/?topic=六十二會所生命讀經"><button>六十二會所生命讀經</button></a>
-            <a href="/PWANotify/?topic=八會所青職生命讀經"><button>八會所青職生命讀經</button></a>
+
+            <a href=" /PWANotify/?topic=八會所生命讀經"><button style="width:auto">八會所生命讀經</button></a>
+
+            <a href="/PWANotify/?topic=四十七會所生命讀經"><button style="width:auto">四十七會所生命讀經</button></a>
+
+            <a href="/PWANotify/?topic=六十二會所生命讀經"><button style="width:auto">六十二會所生命讀經</button></a>
+
+            <a href="/PWANotify/?topic=八會所青職生命讀經"><button style="width:auto">八會所青職生命讀經</button></a>
         </div>
         <div id="subscribe" class="container">
             <div>
@@ -223,15 +227,16 @@
 
             document.getElementById('pageloading').style.display = "none";
 
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                document.querySelector('.advise').style.display = "";
+            }
+
             if (localStorage.getItem("token"))
                 init();
             else if (detectUserAgent() == 'ios') {
                 document.querySelector('#subscribe').style.display = "none";
                 document.querySelector('#startBtn').style.display = "";
-                if (window.matchMedia('(display-mode: standalone)').matches) {
-                    document.querySelector('.advise').style.display = "";
 
-                }
             } else {
                 init();
             }
