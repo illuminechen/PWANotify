@@ -379,6 +379,7 @@
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
                     alert('你已經開啟通知權限！');
+                    window.location.reload();
                 } else {
                     alert('你仍然拒絕了通知權限。');
                 }
