@@ -123,16 +123,6 @@
 <body>
     <div class="banner">訂閱推播</div>
     <div class="topcontainer" style="margin-top: 40px; text-align: center;">
-        <div class="advise" style="display: none;">
-
-            <a href=" /PWANotify/?topic=八會所生命讀經"><button style="width:auto">八會所生命讀經</button></a>
-
-            <a href="/PWANotify/?topic=四十七會所生命讀經"><button style="width:auto">四十七會所生命讀經</button></a>
-
-            <a href="/PWANotify/?topic=六十二會所生命讀經"><button style="width:auto">六十二會所生命讀經</button></a>
-
-            <a href="/PWANotify/?topic=八會所青職生命讀經"><button style="width:auto">八會所青職生命讀經</button></a>
-        </div>
         <div id="subscribe" class="container">
             <div>
                 <label for="topic">請問是否訂閱主題：</label>
@@ -227,16 +217,10 @@
 
             document.getElementById('pageloading').style.display = "none";
 
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                document.querySelector('.advise').style.display = "";
-            }
-
             if (localStorage.getItem("token"))
                 init();
             else if (detectUserAgent() == 'ios') {
-                document.querySelector('#subscribe').style.display = "none";
                 document.querySelector('#startBtn').style.display = "";
-
             } else {
                 init();
             }
@@ -263,7 +247,6 @@
                     document.getElementById('pageloading').style.display = "none";
                     document.getElementById('iframe').src = '';
                     document.getElementById('iframe').style.display = 'none';
-                    document.querySelector('#subscribe').style.display = "none";
                 }
 
                 document.getElementById('iframe').onload = function () {
