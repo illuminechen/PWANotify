@@ -224,8 +224,8 @@
     <script>
         window.onload = async function () {
             let urlParams = new URLSearchParams(window.location.search);
-            const url = params.get('url');
-            const topic = decodeURIComponent(params.get('topic'));
+            const url = urlParams.get('url');
+            const topic = decodeURIComponent(urlParams.get('topic'));
 
             if (topic) {
                 document.querySelector('#topic').value = topic;
