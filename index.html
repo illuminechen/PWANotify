@@ -126,7 +126,7 @@
         <div id="subscribe" class="container">
             <div>
                 <label for="topic">訂閱主題：</label>
-                <input type="text" id="topic" >
+                <input type="text" id="topic">
                 <button id="subscribeBtn" onclick="subscribe()">訂閱</button>
                 <div id="loading" style="display:none;">
                     <span class="loader"></span>
@@ -146,7 +146,6 @@
         <div class="instruction-container" style="display:none;">
             <h2>無法獲取通知權限</h2>
             <p>請根據下方的指示開啟通知權限</p>
-            <button onclick="ask()">獲取權限</button>
             <div class="instruction">
             </div>
         </div>
@@ -213,12 +212,8 @@
             }
 
             document.getElementById('pageloading').style.display = "none";
-            init();
-        }
 
-        async function init() {
             try {
-                document.querySelector('#startBtn').style.display = "none";
                 let token = localStorage.getItem("token");
                 if (!token) {
                     token = await notifyHandler();
@@ -289,18 +284,6 @@
 
             const imgSrc = images[agent] || images["unknown"];
             instruction.innerHTML = `<img src="${imgSrc}" alt="如何開啟通知">`;
-        }
-
-        function ask() {
-            // 重新請求通知權限
-            Notification.requestPermission().then((permission) => {
-                if (permission === 'granted') {
-                    alert('你已經開啟通知權限！');
-                    window.location.reload();
-                } else {
-                    alert('你仍然拒絕了通知權限。');
-                }
-            });
         }
 
         async function subscribe() {
