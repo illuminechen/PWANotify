@@ -115,18 +115,20 @@
 
 <body>
     <div class="banner">訂閱推播</div>
-    <div id="subscribe" class="container">
-        <div>
-            <label for="topic">請問是否訂閱主題：</label>
-            <input type="text" id="topic" readonly>
-            <button id="subscribeBtn" onclick="subscribe()">訂閱</button>
-            <div id="loading" style="display:none;">
-                <span class="loader"></span>
+    <div class="container">
+        <div id="subscribe">
+            <div>
+                <label for="topic">請問是否訂閱主題：</label>
+                <input type="text" id="topic" readonly>
+                <button id="subscribeBtn" onclick="subscribe()">訂閱</button>
+                <div id="loading" style="display:none;">
+                    <span class="loader"></span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <button id='startBtn' onclick="init()" style="display:none">開始使用</button>
+        <button id='startBtn' onclick="init()" style="display:none">開始使用</button>
+    </div>
 
     <div id='pageloading' style="width:100%;text-align:center">
         <img
@@ -143,7 +145,6 @@
         <div class="instruction">
         </div>
     </div>
-
     <script type="module">
         // 從 Firebase CDN 匯入需要的模組
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js';
