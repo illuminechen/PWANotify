@@ -175,13 +175,13 @@
             return new Promise((resolve) => {
                 try {
                     if ('Notification' in window && 'serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('/PWANotify/firebase-messaging-sw.js')
-                            .then(function (registration) {
-                                console.log('Firebase service worker registered with scope:', registration.scope);
-                            })
-                            .catch(function (error) {
-                                console.error('Firebase service worker registration failed:', error);
-                            });
+                        navigator.serviceWorker.register('/PWANotify/firebase-messaging-sw.js', {
+                            scope: '/PWANotify/'  // 設定範圍為你的子目錄
+                        }).then(function (registration) {
+                            console.log('Firebase service worker registered with scope:', registration.scope);
+                        }).catch(function (error) {
+                            console.error('Firebase service worker registration failed:', error);
+                        });
 
                         Notification.requestPermission().then(permission => {
                             if (permission === 'granted') {
