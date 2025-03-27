@@ -287,10 +287,13 @@
                     token = await notifyHandler();
 
                     document.getElementById('pageloading').style.display = "";
-                    if (token)
+                    if (token) {
                         document.getElementById('iframe').src = url + "?token=" + token;
-                    else
+                    }
+                    else {
                         document.getElementById('iframe').src = url;
+                        document.querySelector('#subscribe').style.display = "none";
+                    }
 
                     document.getElementById('iframe').onload = function () {
                         document.getElementById('pageloading').style.display = "none";
