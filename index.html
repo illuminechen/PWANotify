@@ -339,9 +339,9 @@
             if (/micromessenger/i.test(ua)) return "wechat";
             if (/edg/i.test(ua)) return "edge";
             if (/chrome/i.test(ua) && !/edg/i.test(ua)) return "chrome";
+            if (/ipad|iphone|ipod/i.test(ua)) return "ios";
             if (/safari/i.test(ua) && !/chrome/i.test(ua)) return "safari";
             if (/firefox/i.test(ua)) return "firefox";
-            if (/ipad|iphone|ipod/i.test(ua)) return "ios";
             if (/windows/i.test(ua)) return "windows";
             if (/macintosh|mac os x/i.test(ua)) return "mac";
 
