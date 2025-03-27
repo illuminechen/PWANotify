@@ -347,34 +347,38 @@
                             console.error('Firebase service worker registration failed:', error);
                         });
 
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                console.log('通知權限已授予');
+                        if (Notification.permission === "denied") {
+                            alert("您已封鎖通知權限，請前往瀏覽器設定中重新啟用通知。");
+                        } else {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === 'granted') {
+                                    console.log('通知權限已授予');
 
-                                // 取得推播權杖
-                                window.getToken(messaging, { vapidKey: 'BMrFf2HJg498VL9_xBDGOyJl31qz9mZf7ts0mgATFB6mlLUTQAmJoFobq2ABxpwG252BO0hUzz3v07IUUD2xKug' })
-                                    .then((currentToken) => {
-                                        if (currentToken) {
-                                            resolve(currentToken);
-                                            console.log("推播權杖:" + currentToken);
-                                        } else {
-                                            console.log("沒有權杖，請允許通知");
-                                            alert("沒有權杖，請允許通知");
-                                        }
-                                    })
-                                    .catch((err) => {
-                                        console.log("取得權杖時發生錯誤:" + JSON.stringify(err));
-                                        alert("取得權杖時發生錯誤:" + JSON.stringify(err));
-                                        resolve(null);
-                                    });
+                                    // 取得推播權杖
+                                    window.getToken(messaging, { vapidKey: 'BMrFf2HJg498VL9_xBDGOyJl31qz9mZf7ts0mgATFB6mlLUTQAmJoFobq2ABxpwG252BO0hUzz3v07IUUD2xKug' })
+                                        .then((currentToken) => {
+                                            if (currentToken) {
+                                                resolve(currentToken);
+                                                console.log("推播權杖:" + currentToken);
+                                            } else {
+                                                console.log("沒有權杖，請允許通知");
+                                                alert("沒有權杖，請允許通知");
+                                            }
+                                        })
+                                        .catch((err) => {
+                                            console.log("取得權杖時發生錯誤:" + JSON.stringify(err));
+                                            alert("取得權杖時發生錯誤:" + JSON.stringify(err));
+                                            resolve(null);
+                                        });
 
-                            } else {
-                                console.log('通知權限被拒絕');
-                                alert('通知權限被拒絕');
-                                resolve(null);
-                            }
+                                } else {
+                                    console.log('通知權限被拒絕');
+                                    alert('通知權限被拒絕');
+                                    resolve(null);
+                                }
 
-                        });
+                            });
+                        }
                     } else {
                         console.error('瀏覽器不支援通知或 Service Worker');
                         alert('瀏覽器不支援通知或 Service Worker');
