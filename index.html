@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href="/PWANotify/manifest.json">
+    <!-- <link rel="manifest" href="/PWANotify/manifest.json"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂閱推播</title>
     <style>
@@ -267,6 +267,14 @@
             const t = urlParams.get('topic');
             const topic = t ? decodeURIComponent(urlParams.get('topic')) : null;
 
+            const dynamicManifestUrl = url + "?method=manifest";
+
+            // 建立 <link rel="manifest">
+            const manifestLink = document.createElement("link");
+            manifestLink.rel = "manifest";
+            manifestLink.href = dynamicManifestUrl;
+            document.head.appendChild(manifestLink);
+
             if (topic) {
                 document.querySelector('#topic').value = topic;
             }
@@ -282,9 +290,9 @@
                     token = await notifyHandler();
 
                     document.getElementById('pageloading').style.display = "";
-                    if(token)
+                    if (token)
                         document.getElementById('iframe').src = url + "?token=" + token;
-                    else 
+                    else
                         document.getElementById('iframe').src = url;
 
                     document.getElementById('iframe').onload = function () {
