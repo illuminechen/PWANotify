@@ -147,6 +147,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js';
         import { getMessaging, onMessage, getToken } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-messaging.js';
 
+
         // Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAEIb8uxnRZy_c-d_cNJJiAkTs3IRe9djI",
@@ -164,7 +165,8 @@
         // 初始化 Firebase Messaging
         const messaging = getMessaging(app);
 
-        let token;
+        window.messaging = messaging;
+        window.getToken = getToken;
 
         // // 設定前台推播訊息接收
         // onMessage(messaging, (payload) => {
@@ -180,103 +182,6 @@
         //     new Notification(notificationTitle, notificationOptions);
         // });
 
-        // 註冊推播權杖
-        window.subscribe = async function () {
-            token = await notifyHandler();
-
-            if (token == null) {
-                alert("無效的推播權杖！");
-                return;
-            }
-
-            const topic = document.getElementById('topic').value;
-            if (topic.trim() === "") {
-                alert("請輸入訂閱主題！");
-                return;
-            }
-
-            // 取得訂閱按鈕和讀取狀態元素
-            const subscribeBtn = document.getElementById('subscribeBtn');
-            const loadingIndicator = document.getElementById('loading');
-
-            // 顯示讀取狀態
-            subscribeBtn.disabled = true; // 禁用按鈕，防止重複點擊
-            subscribeBtn.textContent = 'Loading...'; // 按鈕文字改為 "Loading..."
-            loadingIndicator.style.display = 'block'; // 顯示讀取指示器
-
-            // 將訂閱資訊傳送到後端 (這裡的 API 路徑需替換為你的後端處理邏輯)
-            fetch('https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify({ method: 'subscribe', token: token, topic: encodeURIComponent(topic) })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('訂閱成功:', data);
-                    alert('成功訂閱 ' + topic + ' 主題！');
-                })
-                .catch(error => {
-                    console.error('訂閱失敗:', error);
-                    alert('訂閱失敗，請稍後再試');
-                }).finally(() => {
-                    // 隱藏讀取指示器並重新啟用按鈕
-                    subscribeBtn.disabled = false;
-                    subscribeBtn.textContent = '訂閱'; // 恢復按鈕文字
-                    loadingIndicator.style.display = 'none'; // 隱藏讀取指示器
-                });
-        };
-
-        // 註冊通知權限並獲取推播權杖
-        window.notifyHandler = () => {
-            return new Promise((resolve) => {
-                try {
-                    if ('Notification' in window && 'serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('/PWANotify/firebase-messaging-sw.js', {
-                            scope: '/PWANotify/'  // 設定範圍為你的子目錄
-                        }).then(function (registration) {
-                            console.log('Firebase service worker registered with scope:', registration.scope);
-                        }).catch(function (error) {
-                            console.error('Firebase service worker registration failed:', error);
-                        });
-
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                console.log('通知權限已授予');
-
-                                // 取得推播權杖
-                                getToken(messaging, { vapidKey: 'BMrFf2HJg498VL9_xBDGOyJl31qz9mZf7ts0mgATFB6mlLUTQAmJoFobq2ABxpwG252BO0hUzz3v07IUUD2xKug' })
-                                    .then((currentToken) => {
-                                        if (currentToken) {
-                                            resolve(currentToken);
-                                            console.log("推播權杖:" + currentToken);
-                                        } else {
-                                            console.log("沒有權杖，請允許通知");
-                                        }
-                                    })
-                                    .catch((err) => {
-                                        console.log("取得權杖時發生錯誤:" + JSON.stringify(err));
-                                        resolve(null);
-                                    });
-
-                            } else {
-                                console.log('通知權限被拒絕');
-                                resolve(null);
-                            }
-
-                        });
-                    } else {
-                        console.error('瀏覽器不支援通知或 Service Worker');
-                        resolve(null);
-                    }
-                }
-                catch (error) {
-                    console.error("錯誤:", error);
-                    resolve(null);
-                }
-            });
-        };
     </script>
     <script>
         window.onload = async function () {
@@ -304,7 +209,7 @@
 
             try {
                 if (url) {
-                    token = await notifyHandler();
+                    const token = await notifyHandler();
                     alert(token);
                     document.getElementById('pageloading').style.display = "";
                     if (token) {
@@ -385,6 +290,104 @@
                 }
             });
         }
+
+        async function subscribe() {
+            const token = await notifyHandler();
+
+            if (token == null) {
+                alert("無效的推播權杖！");
+                return;
+            }
+
+            const topic = document.getElementById('topic').value;
+            if (topic.trim() === "") {
+                alert("請輸入訂閱主題！");
+                return;
+            }
+
+            // 取得訂閱按鈕和讀取狀態元素
+            const subscribeBtn = document.getElementById('subscribeBtn');
+            const loadingIndicator = document.getElementById('loading');
+
+            // 顯示讀取狀態
+            subscribeBtn.disabled = true; // 禁用按鈕，防止重複點擊
+            subscribeBtn.textContent = 'Loading...'; // 按鈕文字改為 "Loading..."
+            loadingIndicator.style.display = 'block'; // 顯示讀取指示器
+
+            // 將訂閱資訊傳送到後端 (這裡的 API 路徑需替換為你的後端處理邏輯)
+            fetch('https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({ method: 'subscribe', token: token, topic: encodeURIComponent(topic) })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('訂閱成功:', data);
+                    alert('成功訂閱 ' + topic + ' 主題！');
+                })
+                .catch(error => {
+                    console.error('訂閱失敗:', error);
+                    alert('訂閱失敗，請稍後再試');
+                }).finally(() => {
+                    // 隱藏讀取指示器並重新啟用按鈕
+                    subscribeBtn.disabled = false;
+                    subscribeBtn.textContent = '訂閱'; // 恢復按鈕文字
+                    loadingIndicator.style.display = 'none'; // 隱藏讀取指示器
+                });
+        };
+
+        // 註冊通知權限並獲取推播權杖
+        function notifyHandler() {
+            return new Promise((resolve) => {
+                try {
+                    if ('Notification' in window && 'serviceWorker' in navigator) {
+                        navigator.serviceWorker.register('/PWANotify/firebase-messaging-sw.js', {
+                            scope: '/PWANotify/'  // 設定範圍為你的子目錄
+                        }).then(function (registration) {
+                            console.log('Firebase service worker registered with scope:', registration.scope);
+                        }).catch(function (error) {
+                            console.error('Firebase service worker registration failed:', error);
+                        });
+
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                console.log('通知權限已授予');
+
+                                // 取得推播權杖
+                                window.getToken(messaging, { vapidKey: 'BMrFf2HJg498VL9_xBDGOyJl31qz9mZf7ts0mgATFB6mlLUTQAmJoFobq2ABxpwG252BO0hUzz3v07IUUD2xKug' })
+                                    .then((currentToken) => {
+                                        if (currentToken) {
+                                            resolve(currentToken);
+                                            console.log("推播權杖:" + currentToken);
+                                        } else {
+                                            console.log("沒有權杖，請允許通知");
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        console.log("取得權杖時發生錯誤:" + JSON.stringify(err));
+                                        resolve(null);
+                                    });
+
+                            } else {
+                                console.log('通知權限被拒絕');
+                                resolve(null);
+                            }
+
+                        });
+                    } else {
+                        console.error('瀏覽器不支援通知或 Service Worker');
+                        resolve(null);
+                    }
+                }
+                catch (error) {
+                    console.error("錯誤:", error);
+                    alert(error);
+                    resolve(null);
+                }
+            });
+        };
 
     </script>
 </body>
