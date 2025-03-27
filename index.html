@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/PWANotify/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂閱推播</title>
     <style>
@@ -168,6 +168,14 @@
             return new Promise((resolve) => {
                 try {
                     if ('Notification' in window && 'serviceWorker' in navigator) {
+                        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                            .then(function (registration) {
+                                console.log('Firebase service worker registered with scope:', registration.scope);
+                            })
+                            .catch(function (error) {
+                                console.error('Firebase service worker registration failed:', error);
+                            });
+
                         Notification.requestPermission().then(permission => {
                             if (permission === 'granted') {
                                 console.log('通知權限已授予');
