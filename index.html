@@ -238,13 +238,15 @@
             document.getElementById('loading').style.display = "none";
 
             try {
-                token = await notifyHandler();
-                document.getElementById('loading').style.display = "";
+                if (url) {
+                    token = await notifyHandler();
+                    document.getElementById('loading').style.display = "";
 
-                document.getElementById('iframe').src = url + "?token=" + token;
-                document.getElementById('iframe').onload = function () {
-                    document.getElementById('loading').style.display = "none";
-                };
+                    document.getElementById('iframe').src = url + "?token=" + token;
+                    document.getElementById('iframe').onload = function () {
+                        document.getElementById('loading').style.display = "none";
+                    };
+                }
             }
             catch { }
         }
