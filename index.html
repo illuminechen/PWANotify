@@ -155,7 +155,6 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js';
         import { getMessaging, onMessage, getToken } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-messaging.js';
 
-
         // Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAEIb8uxnRZy_c-d_cNJJiAkTs3IRe9djI",
@@ -192,7 +191,23 @@
 
     </script>
     <script>
-        window.onload = async function () {
+        let first = true;
+        window.onload = () => {
+            if (detectUserAgent() == 'ios') {
+                document.addEventListener("click", function (event) {
+                    if (first) {
+                        init();
+                        first = false;
+                    }
+                });
+            } else {
+                init();
+            }
+        };
+
+
+
+        async function init() {
             // const dynamicManifestUrl = url + "?method=manifest";
 
             // // 建立 <link rel="manifest">
@@ -214,25 +229,26 @@
             document.getElementById('pageloading').style.display = "none";
 
             try {
-                let token = localStorage.getItem("token");
+                // let token = localStorage.getItem("token");
+                let token = await notifyHandler();
 
-                if (window.matchMedia('(display-mode: standalone)').matches) {
-                    token = localStorage.getItem("token-ex");
-                }
+                // if (window.matchMedia('(display-mode: standalone)').matches) {
+                //     token = localStorage.getItem("token-ex");
+                // }
 
-                if (!token) {
-                    token = await notifyHandler();
-                }
+                // if (!token) {
+                //     token = await notifyHandler();
+                // }
 
                 document.getElementById('pageloading').style.display = "";
 
                 if (token) {
-                    if (window.matchMedia('(display-mode: standalone)').matches) {
-                        localStorage.setItem("token-ex", token);
-                    }
-                    else {
-                        localStorage.setItem("token", token);
-                    }
+                    // if (window.matchMedia('(display-mode: standalone)').matches) {
+                    //     localStorage.setItem("token-ex", token);
+                    // }
+                    // else {
+                    //     localStorage.setItem("token", token);
+                    // }
                     document.getElementById('iframe').src = 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec' + "?token=" + token;
                     document.getElementById('iframe').style.display = '';
                 }
