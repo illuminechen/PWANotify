@@ -168,7 +168,7 @@
             return new Promise((resolve) => {
                 try {
                     if ('Notification' in window && 'serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                        navigator.serviceWorker.register('/PWANotify/firebase-messaging-sw.js')
                             .then(function (registration) {
                                 console.log('Firebase service worker registered with scope:', registration.scope);
                             })
