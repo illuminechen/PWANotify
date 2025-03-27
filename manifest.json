@@ -11,11 +11,6 @@
       "src": "/PWANotify/favicon.png",
       "sizes": "128x128",
       "type": "image/png"
-    },
-    {
-      "src": "/PWANotify/screenshot.png",
-      "sizes": "512x512",
-      "type": "image/png"
     }
   ],
   "screenshots": [
