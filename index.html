@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <!-- <link rel="manifest" href="/PWANotify/manifest.json"> -->
+    <link rel="manifest" href="/PWANotify/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂閱推播</title>
     <style>
@@ -264,16 +264,15 @@
         window.onload = async function () {
             let urlParams = new URLSearchParams(window.location.search);
             const url = urlParams.get('url') || 'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec';
-            const t = urlParams.get('topic');
-            const topic = t ? decodeURIComponent(urlParams.get('topic')) : null;
+            const topic = urlParams.get('topic');
 
-            const dynamicManifestUrl = url + "?method=manifest";
+            // const dynamicManifestUrl = url + "?method=manifest";
 
-            // 建立 <link rel="manifest">
-            const manifestLink = document.createElement("link");
-            manifestLink.rel = "manifest";
-            manifestLink.href = dynamicManifestUrl;
-            document.head.appendChild(manifestLink);
+            // // 建立 <link rel="manifest">
+            // const manifestLink = document.createElement("link");
+            // manifestLink.rel = "manifest";
+            // manifestLink.href = dynamicManifestUrl;
+            // document.head.appendChild(manifestLink);
 
             if (topic) {
                 document.querySelector('#topic').value = topic;
