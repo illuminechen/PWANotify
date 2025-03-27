@@ -98,6 +98,12 @@
                 transform: rotate(360deg);
             }
         }
+
+        .instruction img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
     </style>
 </head>
 
@@ -121,6 +127,14 @@
 
     <iframe id="iframe" frameborder="0" style="width:100%; height: calc(100vh - 80px); border: none; margin-top: 20px;">
     </iframe>
+
+    <div class="instruction-container" style="display:none;">
+        <h2>無法獲取通知權限</h2>
+        <p>請根據下方的指示開啟通知權限</p>
+        <button onclick="subscribe()">獲取權限</button>
+        <div class="instruction">
+        </div>
+    </div>
 
     <script type="module">
         // 從 Firebase CDN 匯入需要的模組
@@ -291,7 +305,9 @@
                         document.getElementById('iframe').src = url + "?token=" + token;
                     }
                     else {
-                        document.getElementById('iframe').src = url;
+                        showInstruction();
+
+                        document.getElementById('iframe').src = '';
                         document.querySelector('#subscribe').style.display = "none";
                     }
 
@@ -302,6 +318,52 @@
             }
             catch { }
         }
+
+        function detectUserAgent() {
+            const ua = navigator.userAgent.toLowerCase();
+
+            if (/android/i.test(ua)) return "android";
+            if (/line/i.test(ua)) return "line";
+            if (/fbav/i.test(ua)) return "facebook";
+            if (/instagram/i.test(ua)) return "instagram";
+            if (/micromessenger/i.test(ua)) return "wechat";
+            if (/edg/i.test(ua)) return "edge";
+            if (/chrome/i.test(ua) && !/edg/i.test(ua)) return "chrome";
+            if (/safari/i.test(ua) && !/chrome/i.test(ua)) return "safari";
+            if (/firefox/i.test(ua)) return "firefox";
+            if (/ipad|iphone|ipod/i.test(ua)) return "ios";
+            if (/windows/i.test(ua)) return "windows";
+            if (/macintosh|mac os x/i.test(ua)) return "mac";
+
+            return "unknown";
+        }
+
+        function showInstruction() {
+            const agent = detectUserAgent();
+            const instructionDiv = document.querySelector('.instruction-container');
+            const instruction = document.querySelector('.instruction');
+            instructionDiv.style.display = '';
+
+            const images = {
+                "line": "https://illuminechen.github.io/PWANotify/line-notification-guide.jpg",
+                "facebook": "https://illuminechen.github.io/PWANotify/facebook-notification-guide.jpg",
+                "instagram": "https://illuminechen.github.io/PWANotify/instagram-notification-guide.jpg",
+                "wechat": "https://illuminechen.github.io/PWANotify/wechat-notification-guide.jpg",
+                "chrome": "https://illuminechen.github.io/PWANotify/chrome-notification-guide.jpg",
+                "safari": "https://illuminechen.github.io/PWANotify/safari-notification-guide.jpg",
+                "firefox": "https://illuminechen.github.io/PWANotify/firefox-notification-guide.jpg",
+                "edge": "https://illuminechen.github.io/PWANotify/edge-notification-guide.jpg",
+                "android": "https://illuminechen.github.io/PWANotify/android-notification-guide.jpg",
+                "ios": "https://illuminechen.github.io/PWANotify/ios-notification-guide.jpg",
+                "windows": "https://illuminechen.github.io/PWANotify/windows-notification-guide.jpg",
+                "mac": "https://illuminechen.github.io/PWANotify/mac-notification-guide.jpg",
+                "unknown": "https://illuminechen.github.io/PWANotify/unknown-browser-guide.jpg"
+            };
+
+            const imgSrc = images[agent] || images["unknown"];
+            instruction.innerHTML = `<img src="${imgSrc}" alt="如何開啟通知">`;
+        }
+
     </script>
 </body>
 
