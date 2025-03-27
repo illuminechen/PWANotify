@@ -305,6 +305,8 @@
                     document.getElementById('pageloading').style.display = "";
                     if (token) {
                         document.getElementById('iframe').src = url + "?token=" + token;
+                        document.getElementById('iframe').style.display = '';
+
                     }
                     else {
                         if (Notification.permission === 'denied') {
@@ -312,6 +314,7 @@
                         }
 
                         document.getElementById('iframe').src = '';
+                        document.getElementById('iframe').style.display = 'none';
                         document.querySelector('#subscribe').style.display = "none";
                     }
 
