@@ -126,7 +126,13 @@
         <div id="subscribe" class="container">
             <div>
                 <label for="topic">訂閱主題：</label>
-                <input type="text" id="topic">
+                <input list="suggestions" type="text" id="topic">
+                <datalist id="suggestions">
+                    <option value="八會所生命讀經"></option>
+                    <option value="四十七會所生命讀經"></option>
+                    <option value="六十二會所生命讀經"></option>
+                    <option value="八會所青職生命讀經"></option>
+                  </datalist>
                 <button id="subscribeBtn" onclick="subscribe()">訂閱</button>
                 <div id="loading" style="display:none;">
                     <span class="loader"></span>
