@@ -146,8 +146,8 @@ self.addEventListener('customPushEvent', async function (event) {
     const notificationTitle = payload.data.title;
     const notificationOptions = {
         body: payload.data.body,
-        icon: payload.data.icon || '/logo.png',
-        badge: payload.data.badge || '/logo.png',
+        icon: payload.data.icon || '/favicon.png',
+        badge: payload.data.badge || '/favicon.png',
         data: payload.data
     };
 
