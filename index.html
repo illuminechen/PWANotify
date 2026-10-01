@@ -6,6 +6,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂閱推播</title>
+
     <style>
         * {
             box-sizing: border-box;
@@ -91,119 +92,422 @@
         <div id="token"></div>
     </div>
 
+
+    <!-- ===================================================== -->
+    <!-- 外部網址 Bridge                                      -->
+    <!-- Service Worker 會開：                                -->
+    <!-- /pwa?external=https%3A%2F%2Fmeet.google.com%2F...    -->
+    <!-- ===================================================== -->
+
+    <script>
+        function handleExternalUrl() {
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+            const externalUrl =
+                params.get("external");
+
+
+            // 沒有 external 就什麼都不做
+            if (!externalUrl) {
+                return;
+            }
+
+
+            console.log(
+                "[PWA] 收到外部網址:",
+                externalUrl
+            );
+
+
+            try {
+
+                const url =
+                    new URL(externalUrl);
+
+
+                // 安全限制
+                // 只允許 http / https
+                if (
+                    url.protocol !== "https:" &&
+                    url.protocol !== "http:"
+                ) {
+
+                    console.error(
+                        "[PWA] 不允許的網址協定:",
+                        url.protocol
+                    );
+
+                    return;
+                }
+
+
+                // ---------------------------------------------
+                // 先把 external 從目前網址清掉
+                //
+                // 避免：
+                //
+                // /pwa?external=meet...
+                //
+                // 使用者重新整理之後又再次打開 Meet
+                // ---------------------------------------------
+
+                const cleanUrl =
+                    new URL(
+                        window.location.href
+                    );
+
+                cleanUrl.searchParams.delete(
+                    "external"
+                );
+
+
+                history.replaceState(
+                    null,
+                    "",
+                    cleanUrl.pathname +
+                    cleanUrl.search +
+                    cleanUrl.hash
+                );
+
+
+                console.log(
+                    "[PWA] 開啟外部網址:",
+                    url.href
+                );
+
+
+                // ---------------------------------------------
+                // 真正開啟外部網址
+                //
+                // 不再由 Service Worker 直接
+                // clients.openWindow(meet.google.com)
+                //
+                // 而是在 PWA 頁面裡開新視窗
+                // ---------------------------------------------
+
+                window.open(
+                    url.href,
+                    "_blank",
+                    "noopener,noreferrer"
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "[PWA] 外部網址格式錯誤:",
+                    externalUrl,
+                    error
+                );
+
+            }
+
+        }
+
+
+        // 頁面載入後立即檢查
+        handleExternalUrl();
+    </script>
+
+
     <script type="module">
-        // 從 Firebase CDN 匯入需要的模組
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js';
-        import { getMessaging, onMessage, getToken } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-messaging.js';
+
+        // =====================================================
+        // Firebase
+        // =====================================================
+
+        import {
+            initializeApp
+        } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js';
+
+        import {
+            getMessaging,
+            onMessage,
+            getToken
+        } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-messaging.js';
+
 
         // Firebase 設定
         const firebaseConfig = {
-            apiKey: "AIzaSyAEIb8uxnRZy_c-d_cNJJiAkTs3IRe9djI",
-            authDomain: "pwanotification-f35a1.firebaseapp.com",
-            projectId: "pwanotification-f35a1",
-            storageBucket: "pwanotification-f35a1.appspot.com",
-            messagingSenderId: "38995625859",
-            appId: "1:38995625859:web:1c088823e2e5b4d84498b6",
-            measurementId: "G-0GJXPT4G8B"
+
+            apiKey:
+                "AIzaSyAEIb8uxnRZy_c-d_cNJJiAkTs3IRe9djI",
+
+            authDomain:
+                "pwanotification-f35a1.firebaseapp.com",
+
+            projectId:
+                "pwanotification-f35a1",
+
+            storageBucket:
+                "pwanotification-f35a1.appspot.com",
+
+            messagingSenderId:
+                "38995625859",
+
+            appId:
+                "1:38995625859:web:1c088823e2e5b4d84498b6",
+
+            measurementId:
+                "G-0GJXPT4G8B"
         };
 
+
         // 初始化 Firebase
-        const app = initializeApp(firebaseConfig);
+        const app =
+            initializeApp(
+                firebaseConfig
+            );
+
 
         // 初始化 Firebase Messaging
-        const messaging = getMessaging(app);
+        const messaging =
+            getMessaging(app);
+
 
         let token;
 
-        // // 設定前台推播訊息接收
-        // onMessage(messaging, (payload) => {
-        //     console.log("前台訊息:", payload);
-        //     const notificationTitle = payload.notification.title;
-        //     const notificationOptions = {
-        //         body: payload.notification.body,
-        //         icon: payload.notification.icon || '/logo.png',
-        //         badge: '/logo.png',
-        //         data: payload.data
-        //     };
 
-        //     new Notification(notificationTitle, notificationOptions);
-        // });
+        // =====================================================
+        // 訂閱
+        // =====================================================
 
-        // 註冊推播權杖
-        window.subscribe = async function () {
-            token = await notifyHandler();
+        window.subscribe =
+            async function () {
 
-            if (!token) {
-                alert("無效的推播權杖！");
-                return;
-            }
+                token =
+                    await notifyHandler();
 
-            const topic = document.getElementById('topic').value;
-            if (topic.trim() === "") {
-                alert("請輸入訂閱主題！");
-                return;
-            }
 
-            // 將訂閱資訊傳送到後端 (這裡的 API 路徑需替換為你的後端處理邏輯)
-            fetch('https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify({ token: token, topic: topic })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('訂閱成功:', data);
-                    alert('成功訂閱 ' + topic + ' 主題！');
-                })
-                .catch(error => {
-                    console.error('訂閱失敗:', error);
-                    alert('訂閱失敗，請稍後再試');
-                });
-        };
+                if (!token) {
 
-        // 註冊通知權限並獲取推播權杖
-        const notifyHandler = () => {
-            return new Promise((resolve) => {
-                try {
-                    if ('Notification' in window && 'serviceWorker' in navigator) {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                console.log('通知權限已授予');
+                    alert(
+                        "無效的推播權杖！"
+                    );
 
-                                // 取得推播權杖
-                                getToken(messaging, { vapidKey: 'BMrFf2HJg498VL9_xBDGOyJl31qz9mZf7ts0mgATFB6mlLUTQAmJoFobq2ABxpwG252BO0hUzz3v07IUUD2xKug' })
-                                    .then((currentToken) => {
-                                        if (currentToken) {
-                                            resolve(currentToken);
-                                            console.log("推播權杖:" + currentToken);
-                                        } else {
-                                            console.log("沒有權杖，請允許通知");
+                    return;
+                }
+
+
+                const topic =
+                    document
+                        .getElementById('topic')
+                        .value;
+
+
+                if (
+                    topic.trim() === ""
+                ) {
+
+                    alert(
+                        "請輸入訂閱主題！"
+                    );
+
+                    return;
+                }
+
+
+                // 將訂閱資訊傳送到後端
+
+                fetch(
+                    'https://script.google.com/macros/s/AKfycbwIaplnroGhDf9sJsDAEE78ygRGfSEFjgkXf3Ky7D_sysCW-h9N8gyla6lwz0RbRqrmHA/exec',
+                    {
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type':
+                                'text/plain'
+                        },
+
+                        body:
+                            JSON.stringify({
+                                token: token,
+                                topic: topic
+                            })
+                    }
+                )
+
+                    .then(
+                        response =>
+                            response.json()
+                    )
+
+                    .then(
+                        data => {
+
+                            console.log(
+                                '訂閱成功:',
+                                data
+                            );
+
+                            alert(
+                                '成功訂閱 ' +
+                                topic +
+                                ' 主題！'
+                            );
+
+                        }
+                    )
+
+                    .catch(
+                        error => {
+
+                            console.error(
+                                '訂閱失敗:',
+                                error
+                            );
+
+                            alert(
+                                '訂閱失敗，請稍後再試'
+                            );
+
+                        }
+                    );
+
+            };
+
+
+        // =====================================================
+        // 通知權限 + FCM Token
+        // =====================================================
+
+        const notifyHandler =
+            () => {
+
+                return new Promise(
+                    (resolve) => {
+
+                        try {
+
+                            if (
+                                'Notification' in window &&
+                                'serviceWorker' in navigator
+                            ) {
+
+                                Notification
+                                    .requestPermission()
+
+                                    .then(
+                                        permission => {
+
+                                            if (
+                                                permission ===
+                                                'granted'
+                                            ) {
+
+                                                console.log(
+                                                    '通知權限已授予'
+                                                );
+
+
+                                                getToken(
+                                                    messaging,
+                                                    {
+                                                        vapidKey:
+                                                            'BMrFf2HJg498VL9_xBDGOyJl31qz9mZf7ts0mgATFB6mlLUTQAmJoFobq2ABxpwG252BO0hUzz3v07IUUD2xKug'
+                                                    }
+                                                )
+
+                                                    .then(
+                                                        currentToken => {
+
+                                                            if (
+                                                                currentToken
+                                                            ) {
+
+                                                                resolve(
+                                                                    currentToken
+                                                                );
+
+                                                                console.log(
+                                                                    "推播權杖:" +
+                                                                    currentToken
+                                                                );
+
+                                                            } else {
+
+                                                                console.log(
+                                                                    "沒有權杖，請允許通知"
+                                                                );
+
+                                                                resolve(
+                                                                    null
+                                                                );
+
+                                                            }
+
+                                                        }
+                                                    )
+
+                                                    .catch(
+                                                        err => {
+
+                                                            console.log(
+                                                                "取得權杖時發生錯誤:" +
+                                                                JSON.stringify(
+                                                                    err
+                                                                )
+                                                            );
+
+                                                            resolve(
+                                                                null
+                                                            );
+
+                                                        }
+                                                    );
+
+
+                                            } else {
+
+                                                console.log(
+                                                    '通知權限被拒絕'
+                                                );
+
+                                                resolve(
+                                                    null
+                                                );
+
+                                            }
+
                                         }
-                                    })
-                                    .catch((err) => {
-                                        console.log("取得權杖時發生錯誤:" + JSON.stringify(err));
-                                        resolve(null);
-                                    });
+                                    );
+
 
                             } else {
-                                console.log('通知權限被拒絕');
-                                resolve(null);
+
+                                console.error(
+                                    '瀏覽器不支援通知或 Service Worker'
+                                );
+
+                                resolve(
+                                    null
+                                );
+
                             }
 
-                        });
-                    } else {
-                        console.error('瀏覽器不支援通知或 Service Worker');
-                        resolve(null);
+
+                        } catch (error) {
+
+                            console.error(
+                                "錯誤:",
+                                error
+                            );
+
+                            resolve(
+                                null
+                            );
+
+                        }
+
                     }
-                }
-                catch (error) {
-                    console.error("錯誤:", error);
-                    resolve(null);
-                }
-            });
-        };
+                );
+
+            };
+
     </script>
 
 </body>
