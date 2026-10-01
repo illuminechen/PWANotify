@@ -97,6 +97,13 @@ const notification_click_handler = async function (event) {
     }
 
     const link = payload.click_action || payload.url || "/PWANotify";
+    const linkUrl = new URL(link, self.location.href);
+    const isExternalHttpUrl =
+        (linkUrl.protocol === 'http:' || linkUrl.protocol === 'https:') &&
+        linkUrl.origin !== self.location.origin;
+    const redirectUrl = isExternalHttpUrl
+        ? "/PWANotify/redirect.html?url=" + encodeURIComponent(linkUrl.href)
+        : link;
 
     // // FM should only open/focus links from app's origin.
     // const url = new URL(link, self.location.href);
@@ -106,14 +113,14 @@ const notification_click_handler = async function (event) {
     // //     return;
     // // }
 
-    console.log('goto:' + link);
+    console.log('goto:' + redirectUrl);
 
     event.waitUntil(
         new Promise(async (resolve) => {
-            let client = await getWindowClient(link);
+            let client = await getWindowClient(redirectUrl);
 
             if (!client) {
-                client = await clients.openWindow(link);
+                client = await clients.openWindow(redirectUrl);
 
                 // Wait three seconds for the client to initialize and set up the message handler so that it
                 // can receive the message.
@@ -207,11 +214,12 @@ function sleep(ms) {
  */
 async function getWindowClient(url) {
     const clientList = await getClientList();
+    const targetUrl = new URL(url, self.location.href);
 
     for (const client of clientList) {
         const clientUrl = new URL(client.url, self.location.href);
 
-        if (url.href === clientUrl.href) {
+        if (targetUrl.href === clientUrl.href) {
             return client;
         }
     }

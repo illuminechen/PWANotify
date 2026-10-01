@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>即將跳轉到</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            align-items: center;
+            background: #f3f6fb;
+            color: #172033;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+            min-height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        main {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(29, 48, 82, .12);
+            box-sizing: border-box;
+            max-width: 480px;
+            padding: 32px 24px;
+            text-align: center;
+            width: 100%;
+        }
+
+        h1 { font-size: 1.35rem; margin: 0 0 16px; }
+        #siteName { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; }
+        #destination {
+            color: #526078;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        #goLink {
+            background: #1769e0;
+            border-radius: 12px;
+            color: #fff;
+            display: inline-block;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 24px;
+            padding: 14px 34px;
+            text-decoration: none;
+        }
+
+        #goLink:focus-visible { outline: 3px solid #8ab8ff; outline-offset: 3px; }
+        #error { color: #b42318; font-weight: 700; }
+        [hidden] { display: none; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>即將跳轉到</h1>
+        <div id="siteName" hidden></div>
+        <div id="destination" hidden></div>
+        <div id="error" hidden>無效的跳轉網址</div>
+        <a id="goLink" hidden>跳轉</a>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const rawUrl = params.get('url');
+        const siteName = document.getElementById('siteName');
+        const destination = document.getElementById('destination');
+        const error = document.getElementById('error');
+        const goLink = document.getElementById('goLink');
+
+        let targetUrl;
+        try {
+            targetUrl = new URL(rawUrl);
+            if (targetUrl.protocol !== 'http:' && targetUrl.protocol !== 'https:') {
+                throw new Error('Unsupported protocol');
+            }
+        } catch {
+            error.hidden = false;
+        }
+
+        if (targetUrl) {
+            siteName.textContent = targetUrl.hostname === 'meet.google.com'
+                ? 'Google Meet'
+                : targetUrl.hostname;
+            destination.textContent = targetUrl.href;
+            goLink.href = targetUrl.href;
+            siteName.hidden = false;
+            destination.hidden = false;
+            goLink.hidden = false;
+        }
+    </script>
+</body>
+</html>
