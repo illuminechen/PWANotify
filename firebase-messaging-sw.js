@@ -4,7 +4,11 @@ console.log(`[Service Worker]`);
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// Your web app's Firebase configuration
+
+// ============================================================
+// Firebase
+// ============================================================
+
 const firebaseConfig = {
     apiKey: "AIzaSyAEIb8uxnRZy_c-d_cNJJiAkTs3IRe9djI",
     authDomain: "pwanotification-f35a1.firebaseapp.com",
@@ -15,280 +19,661 @@ const firebaseConfig = {
     measurementId: "G-0GJXPT4G8B"
 };
 
+firebase.initializeApp(firebaseConfig);
+
+const messaging = firebase.messaging();
+
+
+// ============================================================
+// Custom Push Event
+// ============================================================
+
 class CustomPushEvent extends Event {
+
     constructor(data) {
         super('push');
 
         Object.assign(this, data);
         this.custom = true;
     }
+
 }
 
-// 初始化 Firebase
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
 
-/*
- * Overrides push notification data, to avoid having 'notification' key and firebase blocking
- * the message handler from being called
- */
+// ============================================================
+// PUSH
+//
+// Firebase 如果 payload 裡面有 notification，可能會自己處理通知。
+// 所以這裡把 notification 搬到 data，再交給我們自己的事件。
+// ============================================================
+
 self.addEventListener('push', async (e) => {
 
-    e.preventDefault(); // 阻止預設的推播通知顯示
-
-    // Stop event propagation
+    e.preventDefault();
     e.stopImmediatePropagation();
 
-    // Skip if event is our own custom event
-    if (e.custom) return;
+    // 自己重新 dispatch 的 event 不再處理
+    if (e.custom) {
+        return;
+    }
 
-    // Kep old event data to override
     const oldData = e.data;
-    console.log('[firebase-messaging-sw.js] Received push background message ', oldData.json());
 
-    // Create a new event to dispatch, pull values from notification key and put it in data key,
-    // and then remove notification key
+    if (!oldData) {
+        console.warn('[Service Worker] Push event has no data');
+        return;
+    }
+
+    const originalPayload = oldData.json();
+
+    console.log(
+        '[Service Worker] Received push background message:',
+        originalPayload
+    );
+
     const data = {
-        ehheh: oldData.json(),
+
+        ehheh: originalPayload,
+
         json() {
+
             const newData = oldData.json();
 
             newData.data = {
                 ...newData.data,
-                ...newData.notification,
+                ...newData.notification
             };
 
             delete newData.notification;
+
             return newData;
-        },
-    }
+        }
+    };
 
-    // console.log('[firebase-messaging-sw.js] 新的', newEvent.data.json());
-
-    // // foreground handling: eventually passed to onMessage hook
-    // const clientList = await getClientList();
-    // if (hasVisibleClients(clientList)) {
-    //     return sendMessagePayloadInternalToWindows(clientList, newEvent);
-    // }
 
     const customPushEvent = new Event("customPushEvent");
-    customPushEvent.data = data; // 傳遞當前事件的資料到新事件
 
-    // Dispatch the new wrapped event
+    customPushEvent.data = data;
+
     dispatchEvent(customPushEvent);
 });
 
-const notification_click_handler = async function (event) {
 
-    // Prevent other listeners from receiving the event
-    event.stopImmediatePropagation();
-    event.notification.close();
-    console.log("[Service Worker] data:", event.notification.data);
+// ============================================================
+// Custom Push Event Handler
+// ============================================================
 
-    const payload = event.notification?.data;
-    console.log("[Service Worker] payload:", payload);
+self.addEventListener('customPushEvent', async function (event) {
 
-    if (!payload) {
-        return;
-    } else if (event.action) {
-        // User clicked on an action button. This will allow developers to act on action button clicks
-        // by using a custom onNotificationClick listener that they define.
+    event.preventDefault();
+
+    const payload = event.data.json();
+
+    console.log(
+        '[Service Worker] CustomPushEvent:',
+        payload
+    );
+
+    if (!payload?.data) {
+        console.warn('[Service Worker] payload.data missing');
         return;
     }
 
-    const link = payload.click_action || payload.url || "/pwa";
 
-    // // FM should only open/focus links from app's origin.
-    // const url = new URL(link, self.location.href);
-    // const originUrl = new URL(self.location.origin);
+    const notificationTitle =
+        payload.data.title || '通知';
 
-    // // if (url.host !== originUrl.host) {
-    // //     return;
-    // // }
 
-    console.log('goto:' + link);
+    const notificationOptions = {
+
+        body:
+            payload.data.body || '',
+
+        icon:
+            payload.data.icon || '/logo.png',
+
+        badge:
+            payload.data.badge || '/logo.png',
+
+        // 非常重要
+        // notification click 時就是從這裡拿資料
+        data:
+            payload.data
+    };
+
+
+    if (payload.data.image) {
+
+        notificationOptions.image =
+            payload.data.image;
+    }
+
+
+    await self.registration.showNotification(
+        notificationTitle,
+        notificationOptions
+    );
+
+});
+
+
+// ============================================================
+// Notification Click
+// ============================================================
+
+const notification_click_handler = async function (event) {
+
+    event.stopImmediatePropagation();
+
+    event.notification.close();
+
+
+    const payload =
+        event.notification?.data;
+
+
+    console.log(
+        "[Service Worker] Notification clicked"
+    );
+
+    console.log(
+        "[Service Worker] payload:",
+        payload
+    );
+
+
+    if (!payload) {
+
+        console.warn(
+            "[Service Worker] Notification has no payload"
+        );
+
+        return;
+    }
+
+
+    // 如果未來有 notification action button，
+    // 先保留給 action 自己處理
+    if (event.action) {
+
+        console.log(
+            "[Service Worker] Notification action:",
+            event.action
+        );
+
+        return;
+    }
+
+
+    const link =
+        payload.click_action ||
+        payload.url ||
+        "/pwa";
+
+
+    console.log(
+        "[Service Worker] target:",
+        link
+    );
+
 
     event.waitUntil(
-        new Promise(async (resolve) => {
-            let client = await getWindowClient(link);
 
-            if (!client) {
-                client = await clients.openWindow(link);
+        (async () => {
 
-                // Wait three seconds for the client to initialize and set up the message handler so that it
-                // can receive the message.
-                await sleep(3000);
-            } else {
-                client = await client.focus();
-            }
+            let targetUrl;
 
-            if (!client) {
-                // Window Client will not be returned if it's for a third party origin.
+            try {
+
+                targetUrl =
+                    new URL(
+                        link,
+                        self.location.origin
+                    );
+
+            } catch (error) {
+
+                console.error(
+                    "[Service Worker] Invalid URL:",
+                    link,
+                    error
+                );
+
                 return;
             }
 
-            payload.messageType = 'notification_clicked';
-            payload.isFirebaseMessaging = true;
-            client.postMessage(payload);
-            resolve();
-        })
+
+            console.log(
+                "[Service Worker] resolved target:",
+                targetUrl.href
+            );
+
+
+            // =================================================
+            // 外部網址
+            //
+            // 不直接：
+            //
+            // clients.openWindow("https://meet.google.com/...")
+            //
+            // 因為 PWA / Android 有可能直接把它交給 App Link，
+            // 沒有 Meet App 時就可能跑 Play Store。
+            //
+            // 改成先打開自己的 PWA bridge。
+            // =================================================
+
+            if (
+                targetUrl.origin !==
+                self.location.origin
+            ) {
+
+                const bridgeUrl =
+                    self.location.origin +
+                    "/pwa?external=" +
+                    encodeURIComponent(
+                        targetUrl.href
+                    );
+
+
+                console.log(
+                    "[Service Worker] External URL"
+                );
+
+                console.log(
+                    "[Service Worker] Opening bridge:",
+                    bridgeUrl
+                );
+
+
+                await clients.openWindow(
+                    bridgeUrl
+                );
+
+                return;
+            }
+
+
+            // =================================================
+            // 自己網站內部 URL
+            // =================================================
+
+            let client =
+                await getWindowClient(
+                    targetUrl.href
+                );
+
+
+            if (!client) {
+
+                console.log(
+                    "[Service Worker] Opening internal URL:",
+                    targetUrl.href
+                );
+
+
+                client =
+                    await clients.openWindow(
+                        targetUrl.href
+                    );
+
+
+                // 等待頁面初始化
+                await sleep(3000);
+
+            } else {
+
+                console.log(
+                    "[Service Worker] Focusing existing client:",
+                    client.url
+                );
+
+
+                client =
+                    await client.focus();
+            }
+
+
+            if (!client) {
+
+                console.warn(
+                    "[Service Worker] Unable to obtain WindowClient"
+                );
+
+                return;
+            }
+
+
+            // 通知點擊事件傳回頁面
+            payload.messageType =
+                'notification_clicked';
+
+            payload.isFirebaseMessaging =
+                true;
+
+
+            client.postMessage(
+                payload
+            );
+
+        })()
+
     );
+
 };
 
-// CustomPushEvent 事件處理器
-self.addEventListener('customPushEvent', async function (event) {
-    event.preventDefault(); // 阻止預設的推播通知顯示
 
-    console.log('[firebase-messaging-sw.js] CustomPushEvent message ', event.data.json());
-    const payload = event.data.json();
+// 只註冊一次！
+//
+// 原本程式 customPushEvent 裡面也會註冊，
+// 每收到一個 push 就增加一個 listener。
+// 現在移除那個行為。
 
-    // Customize notification here
-    const notificationTitle = payload.data.title;
-    const notificationOptions = {
-        body: payload.data.body,
-        icon: payload.data.icon || '/logo.png',
-        badge: payload.data.badge || '/logo.png',
-        data: payload.data
-    };
+self.addEventListener(
+    'notificationclick',
+    notification_click_handler
+);
 
-    // Check if there's an image, then add it to the notification options
-    if (payload.data.image) {
-        notificationOptions.image = payload.data.image;
+
+// ============================================================
+// Firebase Background Message
+// ============================================================
+
+messaging.onBackgroundMessage(
+    function (payload) {
+
+        console.log(
+            '[Service Worker] Background message received:',
+            payload
+        );
+
+        // 不在這裡 showNotification
+        //
+        // notification 顯示統一由
+        // customPushEvent 處理。
+
     }
-
-    // Optionally, handle the notification click event to open a URL
-    self.addEventListener('notificationclick', notification_click_handler);
-
-    // Show the notification
-    self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// 停止 Firebase 自動顯示推播通知
-messaging.onBackgroundMessage(function (payload) {
-
-    // 在此處理消息，不顯示預設的通知
-    console.log('[firebase-messaging-sw.js] Background message received: ', payload);
-
-    // 如果不需要顯示通知，可以選擇在此處不做任何處理，或手動自定義顯示邏輯
-});
+);
 
 
-// messaging.onBackgroundMessage(async function (payload) {
-//     console.log('[firebase-messaging-sw.js] Received background message ', payload);
+// ============================================================
+// Cache
+// ============================================================
 
-//     // Customize notification here
-//     const notificationTitle = payload.data.title + "[background]";
-//     const notificationOptions = {
-//         body: payload.data.body,
-//         icon: payload.data.icon || '/favicon.png',
-//         badge: payload.data.badge || '/badge.png',
-//         data: payload.data
-//     };
+const CACHE_NAME =
+    'cwwl-cache-v1';
 
-//     if (!!payload.data.image) {
-//         notificationOptions.image = payload.data.image;
-//     }
 
-//     self.registration.showNotification(notificationTitle, notificationOptions);
-// });
-
-const CACHE_NAME = 'cwwl-cache-v1';
 const urlsToCache = [
+
     '/',
+
     '/manifest.json',
+
     '/css/w3.css',
+
     '/css/w3-theme-black.css',
+
     '/css/font-awesome.min.css',
+
     '/js/exceljs.min.js',
+
     '/js/jspdf.umd.min.js',
+
     '/js/source-han-sans-normal.js',
+
     '/screenshot.png',
+
     '/favicon.png'
+
 ];
 
-self.addEventListener('notificationclick', notification_click_handler);
 
-/** Returns a promise that resolves after given time passes. */
-function sleep(ms) {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
-}
+// ============================================================
+// Service Worker Install
+// ============================================================
+
+self.addEventListener(
+    "install",
+    event => {
+
+        console.log(
+            "[Service Worker] Install"
+        );
+
+
+        event.waitUntil(
+
+            (async () => {
+
+                const cache =
+                    await caches.open(
+                        CACHE_NAME
+                    );
+
+
+                console.log(
+                    "[Service Worker] Caching app shell"
+                );
+
+
+                await cache.addAll(
+                    urlsToCache
+                );
+
+            })()
+
+        );
+
+    }
+);
+
+
+// ============================================================
+// Fetch
+// ============================================================
+
+self.addEventListener(
+    "fetch",
+    event => {
+
+        event.respondWith(
+
+            (async () => {
+
+                const cachedResponse =
+                    await caches.match(
+                        event.request
+                    );
+
+
+                console.log(
+                    `[Service Worker] Fetching resource: ${event.request.url}`
+                );
+
+
+                if (cachedResponse) {
+
+                    console.log(
+                        `[Service Worker] Read Cache: ${event.request.url}`
+                    );
+
+                    return cachedResponse;
+                }
+
+
+                const response =
+                    await fetch(
+                        event.request
+                    );
+
+
+                // 目前維持你原本的行為：
+                // 沒有把 runtime request 寫入 cache。
+
+                return response;
+
+            })()
+
+        );
+
+    }
+);
+
+
+// ============================================================
+// Helpers
+// ============================================================
 
 /**
- * @param url The URL to look for when focusing a client.
- * @return Returns an existing window client or a newly opened WindowClient.
+ * 等待指定時間
+ */
+function sleep(ms) {
+
+    return new Promise(
+        resolve => {
+            setTimeout(
+                resolve,
+                ms
+            );
+        }
+    );
+
+}
+
+
+/**
+ * 找目前已經開啟，而且 URL 完全相同的 WindowClient。
  */
 async function getWindowClient(url) {
-    const clientList = await getClientList();
 
-    for (const client of clientList) {
-        const clientUrl = new URL(client.url, self.location.href);
+    let targetUrl;
 
-        if (url.href === clientUrl.href) {
+    try {
+
+        targetUrl =
+            new URL(
+                url,
+                self.location.origin
+            );
+
+    } catch (error) {
+
+        console.error(
+            "[Service Worker] getWindowClient invalid URL:",
+            url
+        );
+
+        return null;
+    }
+
+
+    const clientList =
+        await getClientList();
+
+
+    for (
+        const client of clientList
+    ) {
+
+        let clientUrl;
+
+        try {
+
+            clientUrl =
+                new URL(
+                    client.url
+                );
+
+        } catch {
+
+            continue;
+        }
+
+
+        if (
+            targetUrl.href ===
+            clientUrl.href
+        ) {
+
             return client;
         }
+
     }
+
 
     return null;
 }
 
-function getClientList() {
-    return self.clients.matchAll({
-        type: 'window',
-        includeUncontrolled: true
-    });
-}
 
 /**
- * @returns If there is currently a visible WindowClient, this method will resolve to true,
- * otherwise false.
+ * 取得所有 Window Client
  */
-function hasVisibleClients(clientList) {
+function getClientList() {
+
+    return self.clients.matchAll({
+
+        type:
+            'window',
+
+        includeUncontrolled:
+            true
+
+    });
+
+}
+
+
+/**
+ * 是否有目前正在顯示的 Client
+ */
+function hasVisibleClients(
+    clientList
+) {
+
     return clientList.some(
+
         client =>
-            client.visibilityState === 'visible' &&
-            // Ignore chrome-extension clients as that matches the background pages of extensions, which
-            // are always considered visible for some reason.
-            !client.url.startsWith('chrome-extension://')
+
+            client.visibilityState ===
+            'visible'
+
+            &&
+
+            !client.url.startsWith(
+                'chrome-extension://'
+            )
+
     );
+
 }
 
-function sendMessagePayloadInternalToWindows(clientList, internalPayload) {
-    internalPayload.isFirebaseMessaging = true;
-    internalPayload.messageType = 'push_received';
 
-    for (const client of clientList) {
-        client.postMessage(internalPayload);
+/**
+ * 將 Firebase payload 傳給所有視窗。
+ *
+ * 目前保留這個 function，
+ * 避免你其他程式仍然有使用它。
+ */
+function sendMessagePayloadInternalToWindows(
+    clientList,
+    internalPayload
+) {
+
+    internalPayload.isFirebaseMessaging =
+        true;
+
+    internalPayload.messageType =
+        'push_received';
+
+
+    for (
+        const client of clientList
+    ) {
+
+        client.postMessage(
+            internalPayload
+        );
+
     }
+
 }
-
-self.addEventListener("install", event => {
-    console.log("[Service Worker] Install");
-
-    event.waitUntil(
-        (async () => {
-            const cache = await caches.open(CACHE_NAME);
-            console.log("[Service Worker] Caching all: app shell and content");
-            await cache.addAll(urlsToCache);
-        })(),
-    );
-});
-
-self.addEventListener("fetch", event => {
-    event.respondWith(
-        (async () => {
-            const r = await caches.match(event.request);
-            console.log(`[Service Worker] Fetching resource: ${event.request.url}`);
-            if (r) {
-                console.log(`[Service Worker] Read Cache: ${event.request.url}`);
-                return r;
-            }
-            const response = await fetch(event.request);
-            const cache = await caches.open(CACHE_NAME);
-            // console.log(`[Service Worker] Caching new resource: ${event.request.url}`);
-            // cache.put(event.request, response.clone());
-            return response;
-        })(),
-    );
-});
